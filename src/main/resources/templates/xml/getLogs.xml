@@ -1,0 +1,13 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:asi="http://siebel.com/asi/" xmlns:th="http://www.thymeleaf.org">
+    <soapenv:Body>
+        <getLogs>
+            <asi:Interval th:each="intr : ${intervals}">
+                <asi:Requst  th:each="req : ${intr}" >
+                    <asi:TimeOfRecieve th:text="${req.recieveDate}"></asi:TimeOfRecieve>
+                    <asi:TimeOfResponse th:text="${req.responseTime}"></asi:TimeOfResponse>
+                    <asi:BodyOfReques th:text="${req.Body}"></asi:BodyOfReques>
+                </asi:Requst>
+            </asi:Interval>
+        </getLogs>
+    </soapenv:Body>
+</soapenv:Envelope>

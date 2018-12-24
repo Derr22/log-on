@@ -4,8 +4,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class ResponsesContainer {
+
+    public int indeForSearch;
 
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
@@ -14,7 +17,14 @@ public class ResponsesContainer {
 
     ArrayList<Requests> Container = new ArrayList<>();
 
-    public ResponsesContainer(){ }
+    public ResponsesContainer(){
+        indeForSearch = 0;
+    }
+
+    public ResponsesContainer(List<Requests> list){
+        Container = (ArrayList<Requests>)list;
+    }
+
 
     public void AddToContainer(Requests request) {
         Container.add(request);
@@ -25,49 +35,56 @@ public class ResponsesContainer {
         MaxResponseTime = Container.stream().mapToInt(Requests::getResponseTime).filter(r -> r>0).max().getAsInt();
     }
 
-    public Requests getElement(int index)
-    {
+    public Requests getElement(int index) {
         return Container.get(index);
     }
 
-    public int getSize()
-    {
+    public int getSize() {
         return Container.size();
     }
-    public void setResponseTime(int index, long response_time)
-    {
+    public void setResponseTime(int index, long response_time) {
         Container.get(index).responseTime = response_time;
     }
 
-    public ArrayList getContainer()
-    {
+    public ArrayList getContainer() {
         return Container;
     }
 
-//    public getIndexesOfFitsStrings(String startDate, ) throws ParseException {
-//        int index = 0;
-//
-//        int startIndex = -1;
-//        int endIndex = -1;
-//
-//        Date start_date = simpleDateFormat.parse(startDate);
-//        for(; index < this.getSize(); index++)
-//        {
-//            if(this.getElement(index).getRecieveDate().equals(start_date) || this.getElement(index).getRecieveDate().after(start_date)) {
-//                startIndex = index;
-//                break;
-//            }
-//        }
-//
-//        Date end_date = simpleDateFormat.parse(endDate);
-//        for(; index < container.getSize(); index++)
-//        {
-//            if(container.getElement(index).getRecieveDate().before(end_date) || container.getElement(index).getRecieveDate().equals(end_date)) {
-//                continue;
-//            }
-//            else {
-//                endIndex = index - 1;
-//            }
-//        }
-//    }
+    public int getStartIndex(String startDate) throws ParseException {
+
+        int startIndex = -1;
+
+        Date start_date = simpleDateFormat.parse(startDate);
+        for(; indeForSearch < this.getSize(); indeForSearch++)
+        {
+            if(this.getElement(indeForSearch).getRecieveDate().equals(start_date) || this.getElement(indeForSearch).getRecieveDate().after(start_date)) {
+                startIndex = indeForSearch;
+                break;
+            }
+        }
+
+       return startIndex;
+    }
+
+    public int getEndIndex(String endDate) throws ParseException {
+
+        int endIndex = -1;
+
+        Date end_date = simpleDateFormat.parse(endDate);
+        for(; indeForSearch < this.getSize(); indeForSearch++)
+        {
+            if(this.getElement(indeForSearch).getRecieveDate().before(end_date) || this.getElement(indeForSearch).getRecieveDate().equals(end_date)) {
+                continue;
+            }
+            else {
+                endIndex = indeForSearch - 1;
+            }
+        }
+
+        indeForSearch = 0;
+
+        return endIndex;
+    }
+
+
 }

@@ -1,27 +1,33 @@
 package controllers;
 
 //import jdk.nashorn.internal.ir.RuntimeNode;
+
 import models.Requests;
 import models.ResponsesContainer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring5.SpringTemplateEngine;
 
 import javax.servlet.http.HttpServletResponse;
-import java.awt.*;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
 
 @RestController
 public class MainController {
 
+    @Autowired
+    SpringTemplateEngine messageTemplateEngine;
+
+
     ResponsesContainer container = new ResponsesContainer();
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
-    @PostMapping (value = "/online-logger")
+
+    @RequestMapping (value = "/online-logger", method = RequestMethod.POST)
     public void logging(@RequestBody(required = false) String body, HttpServletResponse response)  {
 
         System.out.println("Have a request\n");
@@ -47,54 +53,91 @@ public class MainController {
 
 
         //Отладочные костыли
-        for (int i = 0; i< container.getSize(); i++) {
-            System.out.println("body: " + container.getElement(i).getBody()
-                    + "recieveDate: " + container.getElement(i).getRecieveDate()
-                    + "\nresponseTime: " + container.getElement(i).getResponseTime());
-        }
 
         System.out.println("//-----------//\n"
                 + (int)container.AverageResponseTime + "\n"
-                + container.MaxResponseTime + "\n");
+                + container.MaxResponseTime + "\n"
+                + "Count of logs: " + container.getSize());
 
-      //  long usedBytes = (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/1048576;
+        for (int i  = 0; i <  container.getSize(); i++){
+            System.out.printf(simpleDateFormat.format(container.getElement(i).getRecieveDate()) + "\n");
+        }
+
+
+      long usedBytes = (Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory())/1048576;
+        System.out.println("Used bytes:"+ usedBytes);
+        System.out.printf("Total: " + Runtime.getRuntime().maxMemory()/1048576);
     }
 
+
     @GetMapping (value = "/online-logger")
-    public void getLogs(@RequestBody(required = false) String body,
-                        @RequestParam("startDate") String startDate,
+    public void getLogs(@RequestParam("startDate") String startDate,
                         @RequestParam("endDate") String endDate,
                         @RequestParam("interval") String interval,
                         HttpServletResponse response) throws ParseException {
 
-
-        System.out.println("Get");
-        int index = 0;
-
         int startIndex = -1;
         int endIndex = -1;
 
-        Date start_date = simpleDateFormat.parse(startDate);
+        try{
+            startIndex = container.getStartIndex(startDate);
+            endIndex = container.getEndIndex(endDate);
+        }
+        catch (ParseException e){
+            e.printStackTrace();
+        }
 
         if(startIndex >= 0){
-
-            index = startIndex;
 
             if(endIndex == -1){
                 endIndex = container.getSize() - 1;
             }
-            List<Requests> buffer = new ArrayList<>();
-            buffer = container.getContainer().subList(startIndex, endIndex);
 
-            Date startDateForInterval = start_date;
-            Date endDateForInterval = new Date(startDateForInterval.getTime() + Integer.parseInt(interval)*60000);
+            ResponsesContainer buffer = new ResponsesContainer(new ArrayList(container.getContainer().subList(startIndex, endIndex)));
 
+            Date start_date = simpleDateFormat.parse(startDate);
+            Date end_date = simpleDateFormat.parse(endDate);
 
+            String startDateForInterval = startDate;
+            String endDateForInterval = endDate;
+
+            if (interval != "0")
+                endDateForInterval= simpleDateFormat.format(
+                    simpleDateFormat.parse(startDateForInterval).getTime() + Integer.parseInt(interval)*1000
+                );
+
+            ArrayList<ArrayList<Requests>> intervals = new ArrayList<>();
+            for(int i = 0; !simpleDateFormat.parse(endDateForInterval).after(end_date); i++){
+                int startBufIndex = buffer.getStartIndex(startDateForInterval);
+                int endBufIndex = buffer.getEndIndex(endDateForInterval);
+
+                if(startBufIndex >= 0) {
+
+                    if (endBufIndex == -1) {
+                        endBufIndex = container.getSize() - 1;
+                    }
+                }
+
+                intervals.add(new ArrayList(buffer.getContainer().subList(startBufIndex, endBufIndex)));
+
+                if(interval == "0")
+                    break;
+                else{
+                    startDateForInterval = simpleDateFormat.format(
+                            simpleDateFormat.parse(startDateForInterval).getTime()+ Integer.parseInt(interval)*1000);
+                    endDateForInterval= simpleDateFormat.format(
+                            simpleDateFormat.parse(startDateForInterval).getTime() + Integer.parseInt(interval)*1000);
+                }
+            }
+
+            Context context = new Context();
+            context.setVariable("intervals", intervals);
+            String content = messageTemplateEngine.process("xml/getLogs", context);
 
             response.setHeader("Content-Transfer-Encoding", "UTF-8");;
             response.setStatus(200);
             try {
-                response.getWriter().write(startIndex + "\n" + endIndex);
+                response.getWriter().write(content);
             }
             catch (IOException e) {
                 e.printStackTrace();
