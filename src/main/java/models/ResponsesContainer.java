@@ -102,4 +102,12 @@ public class ResponsesContainer {
     }
 
 
+    public void CLEANdoNotTouch()
+    {
+        sumResponseTimes = 0;
+        AverageResponseTime = 0;
+        requestCounter = 0;
+        Container.clear();
+    }
+
 }

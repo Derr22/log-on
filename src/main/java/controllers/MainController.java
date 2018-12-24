@@ -22,6 +22,7 @@ public class MainController {
     SpringTemplateEngine messageTemplateEngine;
 
     int iterateForName = 0;
+    boolean IsLoggingOn = true;
 
 
     ResponsesContainer container = new ResponsesContainer();
@@ -31,44 +32,89 @@ public class MainController {
     @RequestMapping (value = "/online-logger", method = RequestMethod.POST)
     public void logging(@RequestBody(required = false) String body, HttpServletResponse response) throws InterruptedException {
 
-        System.out.println("Have a request\n");
-        Date recieveDate = new Date();
-
-        //сохранение
-        String name = "name" + iterateForName;
-        container.AddToContainer(new Requests(name, recieveDate, -1));
-        iterateForName++;
-
-        //ответ
-        response.setHeader("Content-Transfer-Encoding", "UTF-8");;
-        response.setStatus(200);
-        try {
-            response.getWriter().write("Logging is Okay");
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        //Добавление времени ответа
-        Date responseDate = new Date();
-        int responseTime = (int)(responseDate.getTime() - recieveDate.getTime());
-        container.setResponseTime(container.getSize() - 1, responseTime);
-        container.updateMetrics(container.getElement(container.getSize()-1));
 
 
+        if (body.equals("OFF")) {
 
-        //Отладочные костыли
-        for (int i  = 0; i <  container.getSize(); i++){
-            System.out.printf(simpleDateFormat.format(container.getElement(i).getRecieveDate()) + "\n");
+            IsLoggingOn = false;
+            container.CLEANdoNotTouch();
+
+            response.setHeader("Content-Transfer-Encoding", "UTF-8");;
+            response.setStatus(200);
+            try {
+                response.getWriter().write("Logging is turned off successfully");
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return;
         }
 
-        System.out.println("//-----------//\n"
-                + "Average: " + (int)container.AverageResponseTime + "\n"
-                + "Max: " + container.MaxResponseTime + "\n"
-                + "Count of logs: " + container.getSize());
+        if(body.equals("ON")){
+            IsLoggingOn = true;
 
-        System.out.println("Used Memory:"+ Runtime.getRuntime().totalMemory()/1048576);
-        System.out.println("Max Memory: " + Runtime.getRuntime().maxMemory()/1048576);
+            response.setHeader("Content-Transfer-Encoding", "UTF-8");;
+            response.setStatus(200);
+            try {
+                response.getWriter().write("Logging is turned on successfully");
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return;
+        }
+
+        if(IsLoggingOn){
+            System.out.println("Have a request\n");
+            Date recieveDate = new Date();
+
+            //сохранение
+            String name = "name" + iterateForName;
+            container.AddToContainer(new Requests(name, recieveDate, -1));
+            iterateForName++;
+
+            //ответ
+            response.setHeader("Content-Transfer-Encoding", "UTF-8");;
+            response.setStatus(200);
+            try {
+                long usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+                response.getWriter().write("Logging is Okay.\nFree Memory: " + "Used Memory:"+ (Runtime.getRuntime().maxMemory()-usedMem)/1048576 + "mb");
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            //Добавление времени ответа
+            Date responseDate = new Date();
+            int responseTime = (int)(responseDate.getTime() - recieveDate.getTime());
+            container.setResponseTime(container.getSize() - 1, responseTime);
+            container.updateMetrics(container.getElement(container.getSize()-1));
+
+
+
+            //Отладочные костыли
+
+
+            System.out.println("//-----------//\n"
+                    + "Average: " + (int)container.AverageResponseTime + "\n"
+                    + "Max: " + container.MaxResponseTime + "\n"
+                    + "Count of logs: " + container.getSize());
+
+            System.out.println("Used Memory:"+ Runtime.getRuntime().totalMemory()/1048576);
+            System.out.println("Max Memory: " + Runtime.getRuntime().maxMemory()/1048576);
+        }
+        else{
+            response.setHeader("Content-Transfer-Encoding", "UTF-8");;
+            response.setStatus(200);
+            try {
+                response.getWriter().write("Logging is turned off now. \nTurn it on to saving you requests");
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @GetMapping (value = "/online-logger")
