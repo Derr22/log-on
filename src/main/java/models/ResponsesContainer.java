@@ -9,6 +9,8 @@ import java.util.List;
 public class ResponsesContainer {
 
     public int indexForSearch;
+    public int requestCounter;
+    public int sumResponseTimes;
 
     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -18,7 +20,7 @@ public class ResponsesContainer {
     ArrayList<Requests> Container = new ArrayList<>();
 
     public ResponsesContainer(){
-        indexForSearch = 0;
+        indexForSearch = requestCounter = sumResponseTimes = 0;
     }
 
     public ResponsesContainer(List<Requests> list){
@@ -27,12 +29,18 @@ public class ResponsesContainer {
 
 
     public void AddToContainer(Requests request) {
+
+        requestCounter++;
         Container.add(request);
     }
 
-    public void UpdateMetrics() {
-        AverageResponseTime = Container.stream().mapToInt(Requests::getResponseTime).filter(r -> r>0).average().getAsDouble();
-        MaxResponseTime = Container.stream().mapToInt(Requests::getResponseTime).filter(r -> r>0).max().getAsInt();
+    public void updateMetrics(Requests request)
+    {
+        if(request.responseTime > MaxResponseTime)
+            MaxResponseTime = request.responseTime;
+
+        sumResponseTimes += request.responseTime;
+        AverageResponseTime = sumResponseTimes/requestCounter;
     }
 
     public Requests getElement(int index) {
@@ -42,7 +50,7 @@ public class ResponsesContainer {
     public int getSize() {
         return Container.size();
     }
-    public void setResponseTime(int index, long response_time) {
+    public void setResponseTime(int index, int response_time) {
         Container.get(index).responseTime = response_time;
     }
 
@@ -70,6 +78,9 @@ public class ResponsesContainer {
 
         int endIndex = -1;
 
+
+
+
         Date end_date = simpleDateFormat.parse(endDate);
         for(; indexForSearch < this.getSize(); indexForSearch++)
         {
@@ -77,10 +88,13 @@ public class ResponsesContainer {
                 continue;
             }
             else {
-                endIndex = indexForSearch;
+                endIndex = indexForSearch - 1;
                 break;
             }
         }
+
+        if(endIndex >= this.getSize())
+            endIndex = this.getSize() - 1;
 
         indexForSearch = 0;
 

@@ -3,23 +3,23 @@ package models;
 import java.util.Date;
 
 public class Requests {
-    String Body;
+    String requesName;
     Date recieveDate;
 
-    long responseTime;
+    int responseTime;
 
-    public Requests(String body, Date reqDate, long response_time) {
-        this.Body = body;
+    public Requests(String reqName, Date reqDate, int response_time) {
+        this.requesName = reqName;
         this.recieveDate = reqDate;
         this.responseTime = response_time;
     }
 
     public int getResponseTime() {
-        return (int)responseTime;
+        return responseTime;
     }
 
-    public String getBody() {
-        return Body;
+    public String getRequesName() {
+        return requesName;
     }
 
     public Date getRecieveDate() {
