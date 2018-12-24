@@ -8,9 +8,9 @@ import java.util.List;
 
 public class ResponsesContainer {
 
-    public int indeForSearch;
+    public int indexForSearch;
 
-    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public static double AverageResponseTime = 0;
     public static int MaxResponseTime = 0;
@@ -18,7 +18,7 @@ public class ResponsesContainer {
     ArrayList<Requests> Container = new ArrayList<>();
 
     public ResponsesContainer(){
-        indeForSearch = 0;
+        indexForSearch = 0;
     }
 
     public ResponsesContainer(List<Requests> list){
@@ -55,10 +55,10 @@ public class ResponsesContainer {
         int startIndex = -1;
 
         Date start_date = simpleDateFormat.parse(startDate);
-        for(; indeForSearch < this.getSize(); indeForSearch++)
+        for(; indexForSearch < this.getSize(); indexForSearch++)
         {
-            if(this.getElement(indeForSearch).getRecieveDate().equals(start_date) || this.getElement(indeForSearch).getRecieveDate().after(start_date)) {
-                startIndex = indeForSearch;
+            if(this.getElement(indexForSearch).getRecieveDate().equals(start_date) || this.getElement(indexForSearch).getRecieveDate().after(start_date)) {
+                startIndex = indexForSearch;
                 break;
             }
         }
@@ -71,17 +71,18 @@ public class ResponsesContainer {
         int endIndex = -1;
 
         Date end_date = simpleDateFormat.parse(endDate);
-        for(; indeForSearch < this.getSize(); indeForSearch++)
+        for(; indexForSearch < this.getSize(); indexForSearch++)
         {
-            if(this.getElement(indeForSearch).getRecieveDate().before(end_date) || this.getElement(indeForSearch).getRecieveDate().equals(end_date)) {
+            if(this.getElement(indexForSearch).getRecieveDate().before(end_date) || this.getElement(indexForSearch).getRecieveDate().equals(end_date)) {
                 continue;
             }
             else {
-                endIndex = indeForSearch - 1;
+                endIndex = indexForSearch;
+                break;
             }
         }
 
-        indeForSearch = 0;
+        indexForSearch = 0;
 
         return endIndex;
     }

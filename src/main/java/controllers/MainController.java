@@ -1,7 +1,5 @@
 package controllers;
 
-//import jdk.nashorn.internal.ir.RuntimeNode;
-
 import models.Requests;
 import models.ResponsesContainer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +22,7 @@ public class MainController {
 
 
     ResponsesContainer container = new ResponsesContainer();
-    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 
     @RequestMapping (value = "/online-logger", method = RequestMethod.POST)
@@ -107,7 +105,7 @@ public class MainController {
                 );
 
             ArrayList<ArrayList<Requests>> intervals = new ArrayList<>();
-            for(int i = 0; !simpleDateFormat.parse(endDateForInterval).after(end_date); i++){
+            for(; !simpleDateFormat.parse(endDateForInterval).after(end_date);){
                 int startBufIndex = buffer.getStartIndex(startDateForInterval);
                 int endBufIndex = buffer.getEndIndex(endDateForInterval);
 
